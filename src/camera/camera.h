@@ -1,5 +1,6 @@
 #pragma once
 
+#include "utils/scenedata.h"
 #include <glm/glm.hpp>
 
 // A class representing a virtual camera.
@@ -8,11 +9,49 @@
 // You can either implement and use these getters, or make your own design.
 // If you decide to make your own design, feel free to delete these as TAs won't rely on them to grade your assignments.
 
+struct Ray {
+
+    glm::vec3 origin;
+    glm::vec3 direction;
+
+};
+
 class Camera {
+private:
+
+    int imgWidth;
+    int imgHeight;
+
+    glm::vec3 u;
+    glm::vec3 v;
+    glm::vec3 w;
+    float k = 1.0f;
+
+    glm::vec3 look;
+    glm::vec3 up;
+    glm::vec3 position;
+
+    glm::mat4 viewMatrix;
+
+    float aspectRatio;
+
+    float heightAngle;
+    float widthAngle;
+    float aperture;
+    float focalLength;
+
+    glm::mat4 computeViewMatrix();
+    Ray generateRay(int i, int j);
+
 public:
+
+    void init(const SceneCameraData& camera, int imgWidth, int imgHeight);
+
     // Returns the view matrix for the current camera settings.
     // You might also want to define another function that return the inverse of the view matrix.
     glm::mat4 getViewMatrix() const;
+
+    glm::mat4 getInverseViewMatrix() const;
 
     // Returns the aspect ratio of the camera.
     float getAspectRatio() const;
@@ -29,4 +68,5 @@ public:
     // This is for the depth of field extra-credit feature only;
     // You can ignore if you are not attempting to implement depth of field.
     float getAperture() const;
+
 };
