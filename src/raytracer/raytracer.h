@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "utils/ini_utils.h"
 #include "utils/rgba.h"
+#include "utils/scenedata.h"
 
 #define RAY_TRACE_MAX_DEPTH 4
 #define RAY_TRACE_DEFAULT_SPP 64
@@ -43,6 +44,9 @@ public:
     void render(RGBA *imageData, const RayTraceScene &scene);
 
 private:
+
     const Config m_config;
+    glm::vec4 toObjectToWorldSpace(ScenePrimitive prim);
+
 };
 
