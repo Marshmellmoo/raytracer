@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "camera/camera.h"
 #include "utils/ini_utils.h"
 #include "utils/rgba.h"
 #include "utils/scenedata.h"
@@ -47,6 +48,7 @@ private:
 
     const Config m_config;
     glm::vec4 toObjectToWorldSpace(ScenePrimitive prim);
+    RGBA traceRay(Ray ray, const RayTraceScene &scene);
 
 };
 

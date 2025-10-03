@@ -41,17 +41,15 @@ glm::mat4 Camera::computeViewMatrix() {
 
 }
 
-Ray Camera::generateRay(int i, int j) {
+// Generates camera in CAMERA SPACE.
+Ray Camera::generateRay(int i, int j) const {
 
     float x = 2 * k * glm::tan(heightAngle / 2) * (((j + 0.5) / imgWidth) - 0.5);
     float y = 2 * k * glm::tan(widthAngle / 2) * (((imgHeight - 1 - i + 0.5) / imgHeight) - 0.5);
     float z = -k;
 
-    glm::vec4 cameraPoint = glm::vec4(x, y, z, 1);
-    glm::vec3 worldPoint = glm::vec3(getInverseViewMatrix() * cameraPoint);
-
-    glm::vec3 rayOrigin = position;
-    glm::vec3 rayDirection = glm::normalize(worldPoint - position);
+    glm::vec3 rayOrigin = glm::vec3(0, 0, 0);
+    glm::vec3 rayDirection = glm::normalize(glm::vec3(x, y, z));
 
     return Ray {rayOrigin, rayDirection};
 

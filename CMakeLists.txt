@@ -44,6 +44,8 @@ add_executable(${PROJECT_NAME}
 
   src/utils/imagereader.h src/utils/imagereader.cpp
   src/utils/ini_utils.h src/utils/ini_utils.cpp
+  src/shapes/shape.h src/shapes/sphere.cpp src/shapes/sphere.h
+  src/shapes/cone.cpp src/shapes/cone.h src/shapes/cube.cpp src/shapes/cube.h src/shapes/cylinder.cpp src/shapes/cylinder.h
 
 )
 

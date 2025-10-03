@@ -41,7 +41,6 @@ private:
     float focalLength;
 
     glm::mat4 computeViewMatrix();
-    Ray generateRay(int i, int j);
 
 public:
 
@@ -68,5 +67,7 @@ public:
     // This is for the depth of field extra-credit feature only;
     // You can ignore if you are not attempting to implement depth of field.
     float getAperture() const;
+
+    Ray generateRay(int i, int j) const;
 
 };
