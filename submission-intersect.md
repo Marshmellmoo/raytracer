@@ -29,6 +29,10 @@ Run the program with the specified `.ini` file to compare your output (it should
 | directional_light_2.ini | ![](https://raw.githubusercontent.com/BrownCSCI1230/scenefiles/main/intersect/required_outputs/directional_light_2.png) | ![Place directional_light_2.png in student_outputs/intersect/required folder](student_outputs/intersect/required/directional_light_2.png) |
 
 ### Design Choices
+I chose to make a new abstract class "shape.h" that represents all possible kinds of shapes that can 
+be stored in a scene. The shape class has a method rayIntersect which returns a true if the inputted ray
+intersects the object, and false otherwise. It also holds a field that holds the RenderShapeData of the
+object for easy access to the ctm, material, etc. 
 
 ### Collaboration/References
 

@@ -20,33 +20,57 @@ RayTraceScene::RayTraceScene(int width, int height, const RenderData &metaData) 
     shapes = parseRenderShapeData(metaData.shapes);
 }
 
-std::vector<Shape> parseRenderShapeData(std::vector<RenderShapeData> shapeList) {
+std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vector<RenderShapeData> shapeList) {
 
-    std::vector<Shape> shapes = std::vector<Shape>();
+    std::vector<std::shared_ptr<Shape>> shapes = std::vector<std::shared_ptr<Shape>>();
 
     for (const RenderShapeData& shapeData : shapeList) {
 
-        Shape* shape = nullptr;
         switch (shapeData.primitive.type) {
-            case PrimitiveType::PRIMITIVE_CUBE:
-                shape = new Cube();
-                break;
-            case PrimitiveType::PRIMITIVE_CONE:
-                shape = new Cone();
-                break;
-            case PrimitiveType::PRIMITIVE_CYLINDER:
-                shape = new Cylinder();
-                break;
-            case PrimitiveType::PRIMITIVE_SPHERE:
-                shape = new Sphere();
-                break;
-        }
 
-        shape->shapeInfo = shapeData;
-        shapes.push_back(shape);
+            case PrimitiveType::PRIMITIVE_CUBE: {
 
+                std::shared_ptr<Shape> cube  = std::make_shared<Cube>();
+                cube->shapeInfo = shapeData;
+                shapes.push_back(cube);
+                break;
+
+            }
+
+            case PrimitiveType::PRIMITIVE_CONE: {
+
+                std::shared_ptr<Shape> cone  = std::make_shared<Cone>();
+                cone->shapeInfo = shapeData;
+                shapes.push_back(cone);
+                break;
+
+            }
+
+            case PrimitiveType::PRIMITIVE_CYLINDER: {
+
+                std::shared_ptr<Shape> cyl  = std::make_shared<Cylinder>();
+                cyl->shapeInfo = shapeData;
+                shapes.push_back(cyl);
+                break;
+
+            }
+
+            case PrimitiveType::PRIMITIVE_SPHERE: {
+
+                std::shared_ptr<Shape> sphere  = std::make_shared<Sphere>();
+                sphere->shapeInfo = shapeData;
+                shapes.push_back(sphere);
+                break;
+
+            }
+
+            case PrimitiveType::PRIMITIVE_MESH:
+                break;
+            }
 
     }
+
+    return shapes;
 
 }
 
@@ -70,7 +94,7 @@ const std::vector<SceneLightData>& RayTraceScene::getLightData() const {
     return lights;
 }
 
-const std::vector<Shape>& RayTraceScene::getShapeData() const {
+const std::vector<std::shared_ptr<Shape>>& RayTraceScene::getShapeData() const {
     return shapes;
 }
 

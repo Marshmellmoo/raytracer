@@ -32,6 +32,7 @@ private:
     glm::vec3 position;
 
     glm::mat4 viewMatrix;
+    glm::mat4 inverseViewMatrix;
 
     float aspectRatio;
 

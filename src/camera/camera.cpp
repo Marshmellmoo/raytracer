@@ -12,16 +12,18 @@ void Camera::init(const SceneCameraData& camera, int imgWidth, int imgHeight) {
 
     w = -glm::normalize(look);
     v = glm::normalize(up - (glm::dot(up, w) * w));
-    u = glm::cross(w, v);
+    u = glm::cross(v, w);
 
-    aspectRatio = imgWidth / imgHeight;
+    aspectRatio = (float)imgWidth / (float)imgHeight;
 
     heightAngle = camera.heightAngle;
-    widthAngle = heightAngle * aspectRatio;
+    widthAngle = 2.0f * atan(aspectRatio * tan(heightAngle / 2.0f));
+
     aperture = camera.aperture;
     focalLength = camera.focalLength;
 
     viewMatrix = computeViewMatrix();
+    inverseViewMatrix = glm::inverse(viewMatrix);
 }
 
 glm::mat4 Camera::computeViewMatrix() {
@@ -33,7 +35,10 @@ glm::mat4 Camera::computeViewMatrix() {
 
 
     glm::mat4 mRotate = glm::mat4(col0, col1, col2, col3);
-    glm::mat4 mTranslate = glm::mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -position[0], -position[1], -position[2], 1);
+    glm::mat4 mTranslate = glm::mat4(1, 0, 0, 0,
+                                     0, 1, 0, 0,
+                                     0, 0, 1, 0,
+                                     -position[0], -position[1], -position[2], 1);
 
     glm::mat4 mView = mRotate * mTranslate;
 
@@ -44,8 +49,8 @@ glm::mat4 Camera::computeViewMatrix() {
 // Generates camera in CAMERA SPACE.
 Ray Camera::generateRay(int i, int j) const {
 
-    float x = 2 * k * glm::tan(heightAngle / 2) * (((j + 0.5) / imgWidth) - 0.5);
-    float y = 2 * k * glm::tan(widthAngle / 2) * (((imgHeight - 1 - i + 0.5) / imgHeight) - 0.5);
+    float x = 2 * k * glm::tan(widthAngle / 2) * (((j + 0.5) / imgWidth) - 0.5);
+    float y = 2 * k * glm::tan(heightAngle / 2) * (((imgHeight - 1 - i + 0.5) / imgHeight) - 0.5);
     float z = -k;
 
     glm::vec3 rayOrigin = glm::vec3(0, 0, 0);
@@ -60,7 +65,7 @@ glm::mat4 Camera::getViewMatrix() const {
 }
 
 glm::mat4 Camera::getInverseViewMatrix() const {
-    return glm::inverse(viewMatrix);
+    return inverseViewMatrix;
 }
 
 float Camera::getAspectRatio() const {

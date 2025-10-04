@@ -48,10 +48,10 @@ public:
     const std::vector<SceneLightData>& getLightData() const;
 
     // The getter of the shape data scene
-    const std::shared_ptr<Shape>& getShapeData() const;
+    const std::vector<std::shared_ptr<Shape>>& getShapeData() const;
 
     // The getter of the shared pointer to the camera instance of the scene
     const Camera& getCamera() const;
 
-    std::vector<std::shared_ptr<Shape*>> parseRenderShapeData(std::vector<RenderShapeData> shapeList);
+    std::vector<std::shared_ptr<Shape>> parseRenderShapeData(std::vector<RenderShapeData> shapeList);
 };

@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "camera/camera.h"
+#include "shapes/shape.h"
 #include "utils/ini_utils.h"
 #include "utils/rgba.h"
 #include "utils/scenedata.h"
@@ -47,8 +48,19 @@ public:
 private:
 
     const Config m_config;
-    glm::vec4 toObjectToWorldSpace(ScenePrimitive prim);
-    RGBA traceRay(Ray ray, const RayTraceScene &scene);
+
+    std::shared_ptr<Shape> traceRay(Ray ray,
+                                    const RayTraceScene &scene,
+                                    float& t,
+                                    glm::vec3& hitPoint,
+                                    glm::vec3& normal);
+
+    RGBA phong(glm::vec3  position,
+               glm::vec3  normal,
+               glm::vec3  directionToCamera,
+               SceneGlobalData globalData,
+               SceneMaterial  &material,
+               const std::vector<SceneLightData> &lights);
 
 };
 
