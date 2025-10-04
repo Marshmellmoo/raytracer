@@ -48,13 +48,14 @@ bool Cylinder::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::
         hitPoint = ray.origin + t * ray.direction;
 
         // Normal Calculation
-        if (hitPoint.y == 0.5) {
+        const float epsilon = 0.0001f;
+        if (abs(hitPoint.y - 0.5f) < epsilon) {
 
-            normal = glm::normalize(glm::vec3(0, 1, 0));
+            normal = glm::vec3(0, 1, 0);
 
-        } else if ( hitPoint.y == -0.5) {
+        } else if (abs(hitPoint.y + 0.5f) < epsilon) {
 
-            normal = glm::normalize(glm::vec3(0, -1, 0));
+            normal = glm::vec3(0, -1, 0);
 
         } else {
 

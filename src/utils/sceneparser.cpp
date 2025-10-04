@@ -60,24 +60,26 @@ void nodeTraversal(SceneNode* node, RenderData &renderData, glm::mat4 ctm) {
         return;
     }
 
-    glm::mat4 newCTM = ctm;
+    glm::mat4 culCTM = glm::mat4(1.0f);
+
     for (SceneTransformation* transform : node->transformations) {
         switch (transform->type) {
         case TransformationType::TRANSFORMATION_TRANSLATE:
-            ctm = ctm * getTranslationMatrix(transform->translate[0], transform->translate[1], transform->translate[2]);
+            culCTM *= glm::translate(glm::mat4(1.0f), transform->translate);
             break;
         case TransformationType::TRANSFORMATION_ROTATE:
-            if (transform->rotate[0] == 1) ctm *= getRotationMatrixX(transform->angle);
-            if (transform->rotate[1] == 1) ctm *= getRotationMatrixY(transform->angle);
-            if (transform->rotate[2] == 1) ctm *= getRotationMatrixZ(transform->angle);
+            culCTM *= glm::rotate(glm::mat4(1.0f), transform->angle, transform->rotate);
             break;
         case TransformationType::TRANSFORMATION_SCALE:
-            ctm = ctm * getScalingMatrix(transform->scale[0], transform->scale[1], transform->scale[2]);
+            culCTM *= glm::scale(glm::mat4(1.0f), transform->scale);
             break;
         case TransformationType::TRANSFORMATION_MATRIX:
-            ctm *= transform->matrix;
+            culCTM *= transform->matrix;
+            break;
         }
     }
+
+    ctm *= culCTM;
 
     for (ScenePrimitive* prim : node->primitives) {
         RenderShapeData primitive = {*prim, ctm};

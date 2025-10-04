@@ -55,12 +55,13 @@ bool Cube::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3
         t = *std::min_element(tVals.begin(), tVals.end());
         hitPoint = ray.origin + t * ray.direction;
 
-        if (hitPoint.x == 0.5) { normal = glm::normalize(glm::vec3(1, 0, 0)); }
-        else if (hitPoint.x == -0.5) { normal = glm::normalize(glm::vec3(-1, 0, 0)); }
-        else if (hitPoint.y == 0.5) { normal = glm::normalize(glm::vec3(0, 1, 0)); }
-        else if (hitPoint.y == -0.5) { normal = glm::normalize(glm::vec3(0, -1, 0)); }
-        else if (hitPoint.z == 0.5) { normal = glm::normalize(glm::vec3(0, 0, 1)); }
-        else { normal = glm::normalize(glm::vec3(0, 0, -1));}
+        const float epsilon = 0.0001f;
+        if (abs(hitPoint.x - 0.5f) < epsilon) { normal = glm::vec3(1, 0, 0); }
+        else if (abs(hitPoint.x + 0.5f) < epsilon) { normal = glm::vec3(-1, 0, 0); }
+        else if (abs(hitPoint.y - 0.5f) < epsilon) { normal = glm::vec3(0, 1, 0); }
+        else if (abs(hitPoint.y + 0.5f) < epsilon) { normal = glm::vec3(0, -1, 0); }
+        else if (abs(hitPoint.z - 0.5f) < epsilon) { normal = glm::vec3(0, 0, 1); }
+        else { normal = glm::vec3(0, 0, -1); }
 
         return true;
 

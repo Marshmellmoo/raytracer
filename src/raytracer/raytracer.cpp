@@ -75,6 +75,7 @@ std::shared_ptr<Shape> RayTracer::traceRay(Ray ray,
     glm::vec3 bestNormal;
 
     float smallestT = INFINITY;
+
     std::shared_ptr<Shape> closestIntersectedShape = nullptr;
 
     for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
@@ -136,8 +137,7 @@ RGBA RayTracer::phong(glm::vec3 position,
 
     for (const SceneLightData &light : lights) {
 
-        glm::vec3 lightDirection = glm::normalize(glm::vec3(light.pos) - position);
-
+        glm::vec3 lightDirection = glm::normalize(-glm::vec3(light.dir));
         float ndotl = glm::max(glm::dot(normal, lightDirection), 0.0f);
 
         if (ndotl > 0.0f) {
