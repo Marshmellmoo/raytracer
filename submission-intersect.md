@@ -32,10 +32,17 @@ Run the program with the specified `.ini` file to compare your output (it should
 I chose to make a new abstract class "shape.h" that represents all possible kinds of shapes that can 
 be stored in a scene. The shape class has a method rayIntersect which returns a true if the inputted ray
 intersects the object, and false otherwise. It also holds a field that holds the RenderShapeData of the
-object for easy access to the ctm, material, etc. 
+object for easy access to the ctm, material, etc.
+
+In raytracer, I chose to make two helper functions, "traceRay()" which takes a ray, and all the objects in the scene,
+and finds the closest ray to object intersection. If nothing intersects the ray (aka. t = INFINITY) then the default value
+is black. I then have "phong()" which
 
 ### Collaboration/References
 
 ### Known Bugs
+I had some troubles getting phong lighting to work initially, as I just used my code from lab 5. However, 
+I realized that we were only implementing directional lighting, and my code worked perfectly fine afterwards.
+
 
 ### Extra Credit
