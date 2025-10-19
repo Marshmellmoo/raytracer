@@ -84,19 +84,34 @@ glm::vec2 Cube::computeUV(glm::vec3& hitPoint) const {
     const float epsilon = 0.0001f;
     float u, v;
 
-    if (abs(hitPoint.x - 0.5f) < epsilon || abs(hitPoint.x + 0.5f) < epsilon) {
+    if (abs(hitPoint.x - 0.5f) < epsilon) {
+
+        u = -hitPoint.z + 0.5;
+        v = hitPoint.y + 0.5;
+
+    } else if (abs(hitPoint.x + 0.5f) < epsilon) {
 
         u = hitPoint.z + 0.5;
         v = hitPoint.y + 0.5;
 
-    } else if (abs(hitPoint.y - 0.5f) < epsilon || abs(hitPoint.y + 0.5f) < epsilon) {
+    } else if (abs(hitPoint.y - 0.5f) < epsilon) {
 
-        u = hitPoint.z + 0.5;
-        v = hitPoint.x + 0.5;
+        u = hitPoint.x + 0.5;
+        v = -hitPoint.z + 0.5;
+
+    } else if (abs(hitPoint.y + 0.5f) < epsilon) {
+
+        u = hitPoint.x + 0.5;
+        v = hitPoint.z + 0.5;
+
+    } else if (abs(hitPoint.z - 0.5f) < epsilon) {
+
+        u = hitPoint.x + 0.5;
+        v = hitPoint.y + 0.5;
 
     } else {
 
-        u = hitPoint.x + 0.5;
+        u = -hitPoint.x + 0.5;
         v = hitPoint.y + 0.5;
 
     }

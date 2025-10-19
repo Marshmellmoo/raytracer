@@ -81,7 +81,7 @@ glm::vec2 Cone::computeUV(glm::vec3& hitPoint) const {
 
     } else {
 
-        float theta = atan2(hitPoint.z, hitPoint.x);
+        float theta = atan2(-hitPoint.z, hitPoint.x);
         u = (theta + M_PI) / (2 * M_PI) + 0.5;
         v = hitPoint.y + 0.5;
 

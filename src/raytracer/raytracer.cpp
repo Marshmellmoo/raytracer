@@ -31,7 +31,6 @@ bool isReflective(SceneMaterial& mat) {
 
 void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
 
-    std::vector<Ray> rays = std::vector<Ray>();
     for (int j = 0; j < scene.height(); j++) {
         for (int i = 0; i < scene.width(); i++) {
 
@@ -116,14 +115,14 @@ glm::vec4 RayTracer::traceRay(Ray ray,
             SceneMaterial material = closestShape->shapeInfo.primitive.material;
 
             normalWorld = glm::normalize(normalWorld);
-            glm::vec3 reflectedDirection = glm::reflect(ray.direction, normalWorld);
+            glm::vec3 reflectedDirection = ray.direction - 2.0f * glm::dot(ray.direction, normalWorld) * normalWorld;
 
             reflectedRay.origin = hitPointWorld + normalWorld * 0.001f;
-            reflectedRay.direction = glm::normalize(reflectedDirection);
+            reflectedRay.direction = reflectedDirection;
 
             glm::vec4 reflectedColor = traceRay(reflectedRay, scene, recursiveDepth + 1);
-
             glm::vec3 reflWeight = glm::vec3(material.cReflective) * scene.getGlobalData().ks;
+
             color += glm::vec4(reflWeight * glm::vec3(reflectedColor), 0.0f);
 
        }
@@ -217,8 +216,10 @@ glm::vec4 RayTracer::phong(glm::vec3  position,
 
             } else {
 
+                // Should be doing attenuation calculations if the light is not directional .
                 float distance = glm::length(glm::vec3(light.pos) - position);
-                attenuation = 1.0f / (light.function.x + distance * light.function.y +
+                attenuation = 1.0f / (light.function.x +
+                                      distance * light.function.y +
                                       (distance * distance) * light.function.z);
                 attenuation = glm::min(1.0f, attenuation);
 
@@ -258,10 +259,6 @@ glm::vec4 RayTracer::phong(glm::vec3  position,
 
             float ndotl = glm::max(glm::dot(normal, lightDirection), 0.0f);
 
-            if (ndotl == 0) {
-
-            }
-
             // Diffusion Calculations (including UV mapping) --
             if (material.textureMap.isUsed) {
 
@@ -275,18 +272,20 @@ glm::vec4 RayTracer::phong(glm::vec3  position,
 
                 // Repeating texture checking, normal assignment otherwise
                 if (textureInfo.repeatU > 0) x = (int)(glm::floor(uv.x * textureInfo.repeatU * textureMap->width)) % textureMap->width;
-                else x =(int)(uv.x * textureMap->width);
+                else x =(int)(glm::floor(uv.x * textureMap->width));
 
                 if (textureInfo.repeatV > 0) y = (int)(glm::floor((1 - uv.y) * textureInfo.repeatV * textureMap->height)) % textureMap->height;
-                else y = (int)((1- uv.y) * textureMap->height);
+                else y = (int)(glm::floor((1 - uv.y) * textureMap->height));
 
                 // Bounds checking
                 if (x >= textureMap->width) x = textureMap->width - 1;
                 if (y >= textureMap->height) y = textureMap->height - 1;
 
                 RGBA textureColor = textureMap->data[pointToIndex(x, y, textureMap->width)];
-                glm::vec4 calc = (scene.getGlobalData().kd * glm::vec4((float)textureColor.r, (float)textureColor.g, (float)textureColor.b, 255.0f)) / 255.0f;
-                diffuse = calc * ndotl * material.cDiffuse;
+                glm::vec3 textureColorNorm = glm::vec3((float)textureColor.r, (float)textureColor.g, (float)textureColor.b) / 255.0f;
+                glm::vec3 calc = (scene.getGlobalData().kd * glm::mix(glm::vec3(material.cDiffuse), textureColorNorm, material.blend));
+                //glm::vec4(glm: :mix(glm::vec3(shapeMaterial.cDiffuse), textureColor, shapeMaterial.blend),1);
+                diffuse = glm::vec4(calc, 1.0f) * ndotl;
 
             } else {
 
