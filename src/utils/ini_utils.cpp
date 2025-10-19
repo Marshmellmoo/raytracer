@@ -8,7 +8,8 @@ TextureFilterType IniUtils::textureFilterTypeFromString(const QString& str) {
     else if (str == "trilinear")
         return TextureFilterType::Trilinear;
     else
-        throw std::runtime_error("Invalid texture filter type string.");
+        // throw std::runtime_error("Invalid texture filter type string.");
+        return TextureFilterType::Nearest;
 }
 
 SuperSamplerPattern IniUtils::superSamplerPatternFromString(const QString& str) {

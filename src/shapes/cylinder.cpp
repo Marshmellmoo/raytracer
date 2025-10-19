@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <algorithm>
 
-bool Cylinder::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3& normal) const {
+bool Cylinder::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint) const {
 
     float topCap = 0.5;
     float bottomCap = -0.5;
@@ -47,22 +47,6 @@ bool Cylinder::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::
         t = *std::min_element(tVals.begin(), tVals.end());
         hitPoint = ray.origin + t * ray.direction;
 
-        // Normal Calculation
-        const float epsilon = 0.0001f;
-        if (abs(hitPoint.y - 0.5f) < epsilon) {
-
-            normal = glm::vec3(0, 1, 0);
-
-        } else if (abs(hitPoint.y + 0.5f) < epsilon) {
-
-            normal = glm::vec3(0, -1, 0);
-
-        } else {
-
-            normal = glm::normalize(glm::vec3(hitPoint.x, 0, hitPoint.z));
-
-        }
-
         return true;
 
     }
@@ -70,4 +54,48 @@ bool Cylinder::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::
     return false;
 
 
+}
+
+glm::vec3 Cylinder::computeNormal(glm::vec3& hitPoint) const {
+
+    glm::vec3 normal;
+    const float epsilon = 0.0001f;
+
+    if (abs(hitPoint.y - 0.5f) < epsilon) {
+
+        normal = glm::vec3(0, 1, 0);
+
+    } else if (abs(hitPoint.y + 0.5f) < epsilon) {
+
+        normal = glm::vec3(0, -1, 0);
+
+    } else {
+
+        normal = glm::normalize(glm::vec3(hitPoint.x, 0, hitPoint.z));
+
+    }
+
+    return normal;
+
+}
+
+glm::vec2 Cylinder::computeUV( glm::vec3& hitPoint ) const {
+
+    const float epsilon = 0.0001f;
+    float u, v;
+
+    if (abs(hitPoint.y - 0.5f) < epsilon || abs(hitPoint.y + 0.5f) < epsilon) {
+
+        u = hitPoint.z + 0.5;
+        v = hitPoint.x + 0.5;
+
+    } else {
+
+        float theta = atan2(hitPoint.z, hitPoint.x);
+        u = (theta + M_PI) / (2 * M_PI);
+        v = hitPoint.y + 0.5;
+
+    }
+
+    return glm::vec2(u, v);
 }

@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <algorithm>
 
-bool Cube::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3& normal) const {
+bool Cube::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint) const {
 
     float frontFace = 0.5f;
     float backFace = -0.5f;
@@ -55,18 +55,52 @@ bool Cube::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3
         t = *std::min_element(tVals.begin(), tVals.end());
         hitPoint = ray.origin + t * ray.direction;
 
-        const float epsilon = 0.0001f;
-        if (abs(hitPoint.x - 0.5f) < epsilon) { normal = glm::vec3(1, 0, 0); }
-        else if (abs(hitPoint.x + 0.5f) < epsilon) { normal = glm::vec3(-1, 0, 0); }
-        else if (abs(hitPoint.y - 0.5f) < epsilon) { normal = glm::vec3(0, 1, 0); }
-        else if (abs(hitPoint.y + 0.5f) < epsilon) { normal = glm::vec3(0, -1, 0); }
-        else if (abs(hitPoint.z - 0.5f) < epsilon) { normal = glm::vec3(0, 0, 1); }
-        else { normal = glm::vec3(0, 0, -1); }
-
         return true;
 
     }
 
     return false;
+
+}
+
+glm::vec3 Cube::computeNormal(glm::vec3& hitPoint) const {
+
+    glm::vec3 normal;
+    const float epsilon = 0.0001f;
+
+    if (abs(hitPoint.x - 0.5f) < epsilon) { normal = glm::vec3(1, 0, 0); }
+    else if (abs(hitPoint.x + 0.5f) < epsilon) { normal = glm::vec3(-1, 0, 0); }
+    else if (abs(hitPoint.y - 0.5f) < epsilon) { normal = glm::vec3(0, 1, 0); }
+    else if (abs(hitPoint.y + 0.5f) < epsilon) { normal = glm::vec3(0, -1, 0); }
+    else if (abs(hitPoint.z - 0.5f) < epsilon) { normal = glm::vec3(0, 0, 1); }
+    else { normal = glm::vec3(0, 0, -1); }
+
+    return normal;
+
+}
+
+glm::vec2 Cube::computeUV(glm::vec3& hitPoint) const {
+
+    const float epsilon = 0.0001f;
+    float u, v;
+
+    if (abs(hitPoint.x - 0.5f) < epsilon || abs(hitPoint.x + 0.5f) < epsilon) {
+
+        u = hitPoint.z + 0.5;
+        v = hitPoint.y + 0.5;
+
+    } else if (abs(hitPoint.y - 0.5f) < epsilon || abs(hitPoint.y + 0.5f) < epsilon) {
+
+        u = hitPoint.z + 0.5;
+        v = hitPoint.x + 0.5;
+
+    } else {
+
+        u = hitPoint.x + 0.5;
+        v = hitPoint.y + 0.5;
+
+    }
+
+    return glm::vec2(u, v);
 
 }

@@ -49,17 +49,15 @@ private:
 
     const Config m_config;
 
-    std::shared_ptr<Shape> traceRay(Ray ray,
-                                    const RayTraceScene &scene,
-                                    float& t,
-                                    glm::vec3& hitPoint,
-                                    glm::vec3& normal);
+    glm::vec4 traceRay(Ray ray,
+                  const RayTraceScene &scene,
+                  int recursiveDepth);
 
-    RGBA phong(glm::vec3  position,
+    glm::vec4 phong(glm::vec3  position,
                glm::vec3  normal,
                glm::vec3  directionToCamera,
-               SceneGlobalData globalData,
-               SceneMaterial  &material,
+               const RayTraceScene& scene,
+               std::shared_ptr<Shape>  &material,
                const std::vector<SceneLightData> &lights);
 
 };

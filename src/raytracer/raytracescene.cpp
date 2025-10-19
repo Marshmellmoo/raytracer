@@ -6,6 +6,7 @@
 #include "shapes/cube.h"
 #include "shapes/cylinder.h"
 #include "shapes/sphere.h"
+#include "utils/imagereader.h"
 
 RayTraceScene::RayTraceScene(int width, int height, const RenderData &metaData) {
     // Optional TODO: implement this. Store whatever you feel is necessary.
@@ -32,6 +33,12 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
 
                 std::shared_ptr<Shape> cube  = std::make_shared<Cube>();
                 cube->shapeInfo = shapeData;
+                cube->inverseCTM = glm::inverse(shapeData.ctm);
+
+                if (cube->shapeInfo.primitive.material.textureMap.isUsed) {
+                    cube->textureMap = loadImageFromFile(cube->shapeInfo.primitive.material.textureMap.filename);
+                }
+
                 shapes.push_back(cube);
                 break;
 
@@ -41,6 +48,12 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
 
                 std::shared_ptr<Shape> cone  = std::make_shared<Cone>();
                 cone->shapeInfo = shapeData;
+                cone->inverseCTM = glm::inverse(shapeData.ctm);
+
+                if (cone->shapeInfo.primitive.material.textureMap.isUsed) {
+                    cone->textureMap = loadImageFromFile(cone->shapeInfo.primitive.material.textureMap.filename);
+                }
+
                 shapes.push_back(cone);
                 break;
 
@@ -50,6 +63,12 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
 
                 std::shared_ptr<Shape> cyl  = std::make_shared<Cylinder>();
                 cyl->shapeInfo = shapeData;
+                cyl->inverseCTM = glm::inverse(shapeData.ctm);
+
+                if (cyl->shapeInfo.primitive.material.textureMap.isUsed) {
+                    cyl->textureMap = loadImageFromFile(cyl->shapeInfo.primitive.material.textureMap.filename);
+                }
+
                 shapes.push_back(cyl);
                 break;
 
@@ -59,6 +78,12 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
 
                 std::shared_ptr<Shape> sphere  = std::make_shared<Sphere>();
                 sphere->shapeInfo = shapeData;
+                sphere->inverseCTM = glm::inverse(shapeData.ctm);
+
+                if (sphere->shapeInfo.primitive.material.textureMap.isUsed) {
+                    sphere->textureMap = loadImageFromFile(sphere->shapeInfo.primitive.material.textureMap.filename);
+                }
+
                 shapes.push_back(sphere);
                 break;
 

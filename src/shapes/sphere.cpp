@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <algorithm>
 
-bool Sphere::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3& normal) const {
+bool Sphere::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint) const {
 
     float a = glm::dot(ray.direction, ray.direction);
     float b = 2.0f * glm::dot(ray.origin, ray.direction);
@@ -18,7 +18,24 @@ bool Sphere::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::ve
 
     t = (t1 > 0 && t2 > 0) ? std::min(t1, t2) : std::max(t1, t2);
     hitPoint = ray.origin + t * ray.direction;
-    normal = glm::normalize(hitPoint);
 
     return true;
+}
+
+glm::vec3 Sphere::computeNormal(glm::vec3& hitPoint) const {
+
+    return glm::normalize(hitPoint);
+
+}
+
+glm::vec2 Sphere::computeUV(glm::vec3& hitPoint) const {
+
+    float theta = atan2(hitPoint.z, hitPoint.x);
+    float phi = asin(hitPoint.y / m_radius);
+
+    float u = (theta + M_PI) / (2 * M_PI);
+    float v = (phi / M_PI) + 0.5;
+
+    return glm::vec2(u, v);
+
 }

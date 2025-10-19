@@ -13,103 +13,6 @@ int pointToIndex(int i, int j, int width) {
 
 }
 
-void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
-    // Note that we're passing `data` as a pointer (to its first element)
-    // Recall from Lab 1 that you can access its elements like this: `data[i]`
-
-    // TODO: Implement the ray tracing algorithm. Good luck!
-    std::vector<Ray> rays = std::vector<Ray>();
-    for (int j = 0; j < scene.height(); j++) {
-        for (int i = 0; i < scene.width(); i++) {
-
-            if (j == scene.height() / 2 && i == scene.width() / 2) {
-
-            }
-
-            Ray ray = scene.getCamera().generateRay(j, i);
-            glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
-            glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
-
-            ray.origin    = glm::vec3(originWorld);
-            ray.direction = glm::normalize(glm::vec3(directionWorld));
-
-            float t;
-            glm::vec3 hitPoint;
-            glm::vec3 normal;
-
-            std::shared_ptr<Shape> shape = traceRay(ray, scene, t, hitPoint, normal);
-
-            if (std::isinf(t)) {
-
-                imageData[pointToIndex(i, j, scene.width())] = RGBA{0, 0, 0, 255};
-
-            } else {
-
-                glm::vec3 normalWorld = glm::vec3(glm::sign(glm::determinant(glm::mat3(shape->shapeInfo.ctm))) * glm::transpose(glm::inverse(glm::mat3(shape->shapeInfo.ctm))) * normal);
-                glm::vec3 hitPointWorld = glm::vec3(shape->shapeInfo.ctm * glm::vec4(hitPoint, 1.0f));
-
-                normalWorld = glm::normalize(normalWorld);
-
-                imageData[pointToIndex(i, j, scene.width())] = phong(hitPointWorld,
-                                                                     normalWorld,
-                                                                     -ray.direction,
-                                                                     scene.getGlobalData(),
-                                                                     shape->shapeInfo.primitive.material,
-                                                                     scene.getLightData());
-
-            }
-
-        }
-    }
-
-}
-
-std::shared_ptr<Shape> RayTracer::traceRay(Ray ray,
-                                           const RayTraceScene &scene,
-                                           float& t,
-                                           glm::vec3& hitPoint,
-                                           glm::vec3& normal) {
-
-    float bestT;
-    glm::vec3 bestHitPoint;
-    glm::vec3 bestNormal;
-
-    float smallestT = INFINITY;
-
-    std::shared_ptr<Shape> closestIntersectedShape = nullptr;
-
-    for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
-
-        glm::vec3 originObject    = glm::vec3(glm::inverse(shape->shapeInfo.ctm) * glm::vec4(ray.origin, 1.0f));
-        glm::vec3 directionObject = glm::vec3(glm::inverse(shape->shapeInfo.ctm) * glm::vec4(ray.direction, 0.0f));
-
-        Ray objectSpaceRay = Ray {originObject, directionObject};
-
-        if (shape->rayIntersect(objectSpaceRay, t, hitPoint, normal)) {
-
-            if (t < smallestT) {
-
-                smallestT = t;
-                closestIntersectedShape = shape;
-
-                bestT = t;
-                bestHitPoint = hitPoint;
-                bestNormal = normal;
-
-            };
-
-        }
-
-    }
-
-    t = smallestT;
-    hitPoint = bestHitPoint;
-    normal = bestNormal;
-
-    return closestIntersectedShape;
-
-}
-
 RGBA toRGBA(const glm::vec4 &illumination) {
 
     uint8_t r = (uint8_t)(255.0f * glm::min(glm::max(illumination[0], 0.0f), 1.0f));
@@ -120,48 +23,297 @@ RGBA toRGBA(const glm::vec4 &illumination) {
 
 }
 
-RGBA RayTracer::phong(glm::vec3 position,
-           glm::vec3 normal,
-           glm::vec3  directionToCamera,
-           SceneGlobalData globalData,
-           SceneMaterial &material,
-           const std::vector<SceneLightData> &lights) {
+bool isReflective(SceneMaterial& mat) {
+    return mat.cReflective.r > 0.0f ||
+           mat.cReflective.g > 0.0f ||
+           mat.cReflective.b > 0.0f;
+}
 
-    normal            = glm::normalize(normal);
-    directionToCamera = glm::normalize(directionToCamera);
+void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
 
-    glm::vec4 illumination(0, 0, 0, 1);
+    std::vector<Ray> rays = std::vector<Ray>();
+    for (int j = 0; j < scene.height(); j++) {
+        for (int i = 0; i < scene.width(); i++) {
 
-    glm::vec4 ambience = globalData.ka * material.cAmbient;
-    illumination += ambience;
+            Ray ray = scene.getCamera().generateRay(j, i);
+            glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
+            glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
 
-    for (const SceneLightData &light : lights) {
+            ray.origin    = glm::vec3(originWorld);
+            ray.direction = glm::normalize(glm::vec3(directionWorld));
 
-        glm::vec3 lightDirection = glm::normalize(-glm::vec3(light.dir));
-        float ndotl = glm::max(glm::dot(normal, lightDirection), 0.0f);
+            imageData[pointToIndex(i, j, scene.width())] = toRGBA(traceRay(ray, scene, 0));
 
-        if (ndotl > 0.0f) {
+        }
+    }
 
-            glm::vec4 diffuse = globalData.kd * material.cDiffuse * ndotl;
+}
 
-            glm::vec3 projection = glm::reflect(-lightDirection, normal);
-            float dotVal = glm::dot(projection, directionToCamera);
-            float specPower = std::pow(glm::max(dotVal, 0.0f), material.shininess);
-            glm::vec4 specular = globalData.ks * material.cSpecular * specPower;
+// Should return an RGBA value.
+glm::vec4 RayTracer::traceRay(Ray ray,
+                              const RayTraceScene &scene,
+                              int recursiveDepth) {
 
-            illumination += (light.color) * (diffuse + specular);
+    float t;
+    glm::vec3 hitPoint;
+    glm::vec3 hitPointObject; // store the object-space hit for chosen shape
+    glm::vec3 normal;
+    float smallestT = INFINITY;
+
+    std::shared_ptr<Shape> closestShape = nullptr;
+
+    // Object Intersection Checking --
+    for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
+
+        glm::vec3 originObject    = glm::vec3(shape->inverseCTM * glm::vec4(ray.origin, 1.0f));
+        glm::vec3 directionObject = glm::vec3(shape->inverseCTM * glm::vec4(ray.direction, 0.0f));
+
+        Ray objectSpaceRay = Ray {originObject, directionObject};
+
+        if (shape->rayIntersect(objectSpaceRay, t, hitPoint)) {
+
+            glm::vec3 hitPointWorld = glm::vec3(shape->shapeInfo.ctm * glm::vec4(hitPoint, 1.0f));
+            float tWorld = glm::length(hitPointWorld - ray.origin);
+
+            if (tWorld < smallestT && tWorld > 1e-6f) {
+
+                smallestT = tWorld;
+                closestShape = shape;
+                normal = shape->computeNormal(hitPoint);
+                hitPointObject = hitPoint;
+
+            };
 
         }
 
     }
 
+    // Color Calculations --
 
-    /*    glm::vec3 reflectedRay = -directionToCamera - 2.0f * glm::dot(glm::normalize(-directionToCamera), normal) * normal;
-    // Made directionToCamera negative, and normalized directionToCamera in the dot product.
-    illumination += kr * reflectionSampler.getReflection(position, reflectedRay); */  // <-- no need to edit this after uncommenting
+    t = smallestT;
+    glm::vec4 color;
 
-    RGBA returnValue = toRGBA(illumination);
-    return returnValue;
+    if (std::isinf(t)) {
+
+        return glm::vec4(0, 0, 0, 1);
+
+    } else {
+
+        glm::vec3 normalWorld = glm::vec3(glm::sign(glm::determinant(glm::mat3(closestShape->shapeInfo.ctm))) * glm::transpose(glm::mat3(closestShape->inverseCTM)) * normal);
+        glm::vec3 hitPointWorld = glm::vec3(closestShape->shapeInfo.ctm * glm::vec4(hitPointObject, 1.0f));
+
+        color = phong(hitPointWorld,
+                      normalWorld,
+                      -ray.direction,
+                      scene,
+                      closestShape,
+                      scene.getLightData());
+
+        // May need to change to qsettings config ?
+        if (recursiveDepth < 4 && isReflective(closestShape->shapeInfo.primitive.material)) {
+
+            Ray reflectedRay;
+            SceneMaterial material = closestShape->shapeInfo.primitive.material;
+
+            normalWorld = glm::normalize(normalWorld);
+            glm::vec3 reflectedDirection = glm::reflect(ray.direction, normalWorld);
+
+            reflectedRay.origin = hitPointWorld + normalWorld * 0.001f;
+            reflectedRay.direction = glm::normalize(reflectedDirection);
+
+            glm::vec4 reflectedColor = traceRay(reflectedRay, scene, recursiveDepth + 1);
+
+            glm::vec3 reflWeight = glm::vec3(material.cReflective) * scene.getGlobalData().ks;
+            color += glm::vec4(reflWeight * glm::vec3(reflectedColor), 0.0f);
+
+       }
+
+    }
+
+    return color;
+
+}
+
+// Returns true if shadow ray does not intersect with anything before reaching light -- false otherwise.
+// Should only be used by phong().
+bool traceShadowRay(glm::vec3 position,
+                    const RayTraceScene& scene,
+                    const SceneLightData &light,
+                    glm::vec3 normal) {
+
+    Ray shadowRay;
+    shadowRay.origin = position + 0.001f * normal;
+
+    if (light.type == LightType::LIGHT_POINT) shadowRay.direction = glm::normalize((glm::vec3(light.pos) - position));
+    else shadowRay.direction = glm::normalize(-glm::vec3(light.dir));
+
+    for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
+
+        glm::vec3 originObject    = glm::vec3(shape->inverseCTM * glm::vec4(shadowRay.origin, 1.0f));
+        glm::vec3 directionObject = glm::vec3(shape->inverseCTM * glm::vec4(shadowRay.direction, 0.0f));
+
+        Ray objectSpaceRay = Ray {originObject, directionObject};
+        float t; glm::vec3 hitPoint;
+
+        if (shape->rayIntersect(objectSpaceRay, t, hitPoint)) {
+
+            // If shape intersected with before light, return false.
+            if (light.type == LightType::LIGHT_DIRECTIONAL) {
+
+                if (t > 0.0f) return false;
+
+            } else {
+
+                glm::vec3 lightPosObject = glm::vec3(shape->inverseCTM * glm::vec4(glm::vec3(light.pos), 1.0f));
+
+                if (t < glm::length(lightPosObject - hitPoint)) {
+                    return false;
+                }
+
+            }
+
+        }
+
+    }
+
+    return true;
+
+}
+
+glm::vec4 RayTracer::phong(glm::vec3  position,
+           glm::vec3  normal,
+           glm::vec3  directionToCamera,
+           const RayTraceScene& scene,
+           std::shared_ptr<Shape>  &shape,
+           const std::vector<SceneLightData> &lights) {
+
+    // Computing Normals
+    normal            = glm::normalize(normal);
+    directionToCamera = glm::normalize(directionToCamera);
+
+    SceneMaterial material = shape->shapeInfo.primitive.material;
+    glm::vec3 lightDirection;
+    glm::vec4 illumination(0, 0, 0, 1);
+
+    // Ambience --
+    glm::vec4 ambience = scene.getGlobalData().ka * material.cAmbient;
+    illumination += ambience;
+
+    for (const SceneLightData &light : lights) {
+
+        glm::vec4 diffuse, specular;
+        float attenuation = 1.0f;
+        float falloff = 1.0f;
+
+        // Shadow Ray Checking --
+        if (traceShadowRay(position, scene, light, normal)) {
+
+            if (light.type == LightType::LIGHT_DIRECTIONAL) {
+
+                // Directional Light Calculations --
+                attenuation = 1.0f;
+                falloff = 1.0f;
+                lightDirection = glm::normalize(-glm::vec3(light.dir));
+
+            } else {
+
+                float distance = glm::length(glm::vec3(light.pos) - position);
+                attenuation = 1.0f / (light.function.x + distance * light.function.y +
+                                      (distance * distance) * light.function.z);
+                attenuation = glm::min(1.0f, attenuation);
+
+                lightDirection = glm::normalize((glm::vec3(light.pos) - position));
+
+                if (light.type == LightType::LIGHT_POINT) {
+
+                    // Point Light Calculations --
+                    falloff = 1.0f;
+
+                } else {
+
+                    // Spotlight Calculations --
+
+                    float innerAngle = light.angle - light.penumbra;
+                    glm::vec3 lightToPoint = glm::normalize(position - glm::vec3(light.pos));
+                    float x = glm::acos(glm::dot(glm::normalize(glm::vec3(light.dir)), lightToPoint));
+
+                    if (x <= innerAngle) {
+
+                        falloff = 1.0f;
+
+                    } else if (x <= light.angle) {
+
+                        float a = (x - innerAngle) / (light.angle - innerAngle);
+                        falloff = 1.0f - (-2.0f * (a * a * a) + 3.0f * (a * a));
+
+                    } else {
+
+                        falloff = 0.0f;
+
+                    }
+
+                }
+
+            }
+
+            float ndotl = glm::max(glm::dot(normal, lightDirection), 0.0f);
+
+            if (ndotl == 0) {
+
+            }
+
+            // Diffusion Calculations (including UV mapping) --
+            if (material.textureMap.isUsed) {
+
+                glm::vec3 positionObject = shape->inverseCTM * glm::vec4(position, 1.0f);
+                glm::vec2 uv = shape->computeUV(positionObject);
+
+                Image* textureMap = shape->textureMap;
+                int x, y;
+
+                auto textureInfo = shape->shapeInfo.primitive.material.textureMap;
+
+                // Repeating texture checking, normal assignment otherwise
+                if (textureInfo.repeatU > 0) x = (int)(glm::floor(uv.x * textureInfo.repeatU * textureMap->width)) % textureMap->width;
+                else x =(int)(uv.x * textureMap->width);
+
+                if (textureInfo.repeatV > 0) y = (int)(glm::floor((1 - uv.y) * textureInfo.repeatV * textureMap->height)) % textureMap->height;
+                else y = (int)((1- uv.y) * textureMap->height);
+
+                // Bounds checking
+                if (x >= textureMap->width) x = textureMap->width - 1;
+                if (y >= textureMap->height) y = textureMap->height - 1;
+
+                RGBA textureColor = textureMap->data[pointToIndex(x, y, textureMap->width)];
+                glm::vec4 calc = (scene.getGlobalData().kd * glm::vec4((float)textureColor.r, (float)textureColor.g, (float)textureColor.b, 255.0f)) / 255.0f;
+                diffuse = calc * ndotl * material.cDiffuse;
+
+            } else {
+
+                // Normal diffuse assignment
+                diffuse = scene.getGlobalData().kd * material.cDiffuse * ndotl;
+
+            }
+
+
+            // Specular Calculations --
+            glm::vec3 projection = glm::reflect(-lightDirection, normal);
+            float dotVal = glm::dot(projection, directionToCamera);
+            float specPower = std::pow(glm::max(dotVal, 0.0f), material.shininess);
+            specular = scene.getGlobalData().ks * material.cSpecular * specPower;
+
+            illumination += (attenuation * light.color * falloff) * (diffuse + specular);
+
+
+        } else {
+
+            continue;
+
+        }
+
+    }
+
+    return illumination;
 
 }
 

@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <algorithm>
 
-bool Cone::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3& normal) const {
+bool Cone::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint) const {
 
     float base = -0.5;
 
@@ -45,17 +45,48 @@ bool Cone::rayIntersect(const Ray& ray, float& t, glm::vec3& hitPoint, glm::vec3
         t = *std::min_element(tVals.begin(), tVals.end());
         hitPoint = ray.origin + t * ray.direction;
 
-        const float epsilon = 0.0001f;
-        if (abs(hitPoint.y + 0.5f) < epsilon) {
-            normal = glm::vec3(0, -1, 0);
-        } else {
-            normal = glm::normalize(glm::vec3(hitPoint.x, (0.5f - hitPoint.y) / 4.0f, hitPoint.z));
-        }
-
         return true;
 
     }
 
     return false;
+
+}
+
+glm::vec3 Cone::computeNormal(glm::vec3& hitPoint) const {
+
+    glm::vec3 normal;
+
+    const float epsilon = 0.0001f;
+    if (abs(hitPoint.y + 0.5f) < epsilon) {
+        normal = glm::vec3(0, -1, 0);
+    } else {
+        normal = glm::normalize(glm::vec3(hitPoint.x, (0.5f - hitPoint.y) / 4.0f, hitPoint.z));
+    }
+
+    return normal;
+
+}
+
+glm::vec2 Cone::computeUV(glm::vec3& hitPoint) const {
+
+
+    const float epsilon = 0.0001f;
+    float u, v;
+
+    if (abs(hitPoint.y + 0.5f) < epsilon) {
+
+        u = hitPoint.x + 0.5;
+        v = hitPoint.z + 0.5;
+
+    } else {
+
+        float theta = atan2(hitPoint.z, hitPoint.x);
+        u = (theta + M_PI) / (2 * M_PI) + 0.5;
+        v = hitPoint.y + 0.5;
+
+    }
+
+    return glm::vec2(u, v);
 
 }

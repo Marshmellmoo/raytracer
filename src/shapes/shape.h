@@ -2,7 +2,9 @@
 
 #include <glm/glm.hpp>
 #include "camera/camera.h"
+#include "utils/imagereader.h"
 #include "utils/sceneparser.h"
+#include "utils/imagereader.h"
 
 class Shape {
 
@@ -13,10 +15,15 @@ public:
     virtual bool rayIntersect(
         const Ray& ray,
         float& t,
-        glm::vec3& hitPoint,
-        glm::vec3& normal ) const = 0;
+        glm::vec3& hitPoint) const = 0;
+
+    virtual glm::vec3 computeNormal(glm::vec3& hitPoint ) const = 0;
+    virtual glm::vec2 computeUV( glm::vec3& hitPoint ) const = 0;
 
     RenderShapeData shapeInfo;
+
+    glm::mat4 inverseCTM;
+    Image* textureMap;
 
 protected:
 
