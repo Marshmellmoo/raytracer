@@ -156,7 +156,6 @@ bool traceShadowRay(glm::vec3 position,
 
         if (shape->rayIntersect(objectSpaceRay, t, hitPoint)) {
 
-            // If shape intersected with before light, return false.
             if (light.type == LightType::LIGHT_DIRECTIONAL) {
 
                 if (t > 0.0f) return false;
@@ -164,7 +163,7 @@ bool traceShadowRay(glm::vec3 position,
             } else {
 
                 glm::vec3 lightPosObject = glm::vec3(shape->inverseCTM * glm::vec4(glm::vec3(light.pos), 1.0f));
-
+                // If shape intersected with before light, return false.
                 if (t < glm::length(lightPosObject - hitPoint)) {
                     return false;
                 }
@@ -282,10 +281,11 @@ glm::vec4 RayTracer::phong(glm::vec3  position,
                 if (y >= textureMap->height) y = textureMap->height - 1;
 
                 RGBA textureColor = textureMap->data[pointToIndex(x, y, textureMap->width)];
-                glm::vec3 textureColorNorm = glm::vec3((float)textureColor.r, (float)textureColor.g, (float)textureColor.b) / 255.0f;
-                glm::vec3 calc = (scene.getGlobalData().kd * glm::mix(glm::vec3(material.cDiffuse), textureColorNorm, material.blend));
-                //glm::vec4(glm: :mix(glm::vec3(shapeMaterial.cDiffuse), textureColor, shapeMaterial.blend),1);
-                diffuse = glm::vec4(calc, 1.0f) * ndotl;
+                glm::vec4 textureColorNorm = glm::vec4((float)textureColor.r, (float)textureColor.g, (float)textureColor.b, 255.0f) / 255.0f;
+                // glm::vec4 calc = scene.getGlobalData().kd * glm::mix(textureColorNorm, glm::vec3(material.cDiffuse), 1 - material.blend);
+                // diffuse = glm::vec4(calc, 1.0f) * ndotl;
+
+                diffuse = (material.blend * textureColorNorm + (((1.0f - material.blend) * scene.getGlobalData().kd * material.cDiffuse))) * ndotl;
 
             } else {
 

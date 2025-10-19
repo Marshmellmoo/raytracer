@@ -33,9 +33,31 @@ Run the program with the specified `.ini` file to compare your output (it should
 
 
 ## Design Choices
+For shadows, I created a traceShadowRay function thats slightly 
+faster than traceRay because it stops running as soon as it finds 
+an intersection before the light.
+
+For UV mapping, I added a new field to my abtract shape object class called 
+textureMap, that holds the shapes loaded texture if it has one. I also created a 
+computeUV() method that computes the shapes UV coordinates depending on the face 
+and intersection point.
+
+During implementation I also realized that I implemented traceRay wrong initially, 
+and that it should be returning a color not the closest shape intersection, so I 
+changed it to both compute the nearest shape, and return that shapes color as a 
+vec4. This made it easier to implement recursive raytracing for my reflections as 
+well!
 
 ## Collaboration/References
+I used ChatGPT to better understand concepts, UV coordinate systems, and proper 
+intialization for fields within abstract classes. 
 
 ## Known Bugs
+For a long time I had a scene darkening issue with my texture scenes, which only 
+happened because I wasn't blending the diffuse and texture properties of my 
+objects. I also had problems with my point and spotlight placement, because I was 
+multiplying the light position and direction by my CTM in the wrong order in my 
+sceneparser.cpp file. All these problems were eventually fixed thoug!
 
 ## Extra Credit
+I did not do any extra credit.

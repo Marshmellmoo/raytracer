@@ -86,13 +86,13 @@ glm::vec2 Cylinder::computeUV( glm::vec3& hitPoint ) const {
 
     if (abs(hitPoint.y - 0.5f) < epsilon) {
 
-        u = hitPoint.z + 0.5;
-        v = hitPoint.x + 0.5;
+        u = hitPoint.x + 0.5;
+        v =-hitPoint.z + 0.5;
 
     } else if (abs(hitPoint.y + 0.5f) < epsilon) {
 
-        u = -hitPoint.z + 0.5;
-        v = hitPoint.x + 0.5;
+        u = hitPoint.x + 0.5;
+        v = hitPoint.z + 0.5;
 
     } else {
 
