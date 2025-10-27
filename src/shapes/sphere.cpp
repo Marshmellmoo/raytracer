@@ -30,8 +30,8 @@ glm::vec3 Sphere::computeNormal(glm::vec3& hitPoint) const {
 
 glm::vec2 Sphere::computeUV(glm::vec3& hitPoint) const {
 
-    float theta = atan2(-hitPoint.z, hitPoint.x);
-    float phi = asin(hitPoint.y / m_radius);
+    float theta = atan2(-hitPoint.z, hitPoint.x); // Coordinates that give hitpoint "x" as an angle away fom center of sphere
+    float phi = asin(hitPoint.y / m_radius); // Coordinates that give hitpoint "y" as how elevated from center of sphere
 
     float u = (theta) / (2 * M_PI);
     float v = (phi / M_PI) + 0.5;

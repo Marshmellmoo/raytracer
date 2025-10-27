@@ -46,7 +46,7 @@ glm::mat4 Camera::computeViewMatrix() {
 
 }
 
-// Generates camera in CAMERA SPACE.
+// Generates ray in CAMERA SPACE.
 Ray Camera::generateRay(int i, int j) const {
 
     float x = 2 * k * glm::tan(widthAngle / 2) * (((j + 0.5) / imgWidth) - 0.5);
