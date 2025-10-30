@@ -1,6 +1,12 @@
 #include "raytracer.h"
 #include "raytracescene.h"
 #include "shapes/shape.h"
+#include <random>
+
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+
 #include <iostream>
 
 RayTracer::RayTracer(Config config) :
@@ -12,7 +18,6 @@ int pointToIndex(int i, int j, int width) {
     return j * width + i;
 
 }
-
 RGBA toRGBA(const glm::vec4 &illumination) {
 
     uint8_t r = (uint8_t)(255.0f * glm::min(glm::max(illumination[0], 0.0f), 1.0f));
@@ -22,44 +27,139 @@ RGBA toRGBA(const glm::vec4 &illumination) {
     return RGBA{r, g, b, 255};
 
 }
-
 bool isReflective(SceneMaterial& mat) {
     return mat.cReflective.r > 0.0f ||
            mat.cReflective.g > 0.0f ||
            mat.cReflective.b > 0.0f;
 }
 
+// For adaptive supersampling, have a helper function adaptiveSample() return true if more is needed, false otherwise?
+
 void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
 
     for (int j = 0; j < scene.height(); j++) {
         for (int i = 0; i < scene.width(); i++) {
 
-            Ray ray = scene.getCamera().generateRay(j, i);
-            glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
-            glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
+            bool randomSampling = false;
+            bool uniformSampling = true;
+            bool stratifiedSampling = false;
 
-            ray.origin    = glm::vec3(originWorld);
-            ray.direction = glm::normalize(glm::vec3(directionWorld));
+            // You can save runtime by not calculating the sqrt of the spp.
 
-            imageData[pointToIndex(i, j, scene.width())] = toRGBA(traceRay(ray, scene, 0));
+            if (randomSampling) {
+
+                // Random Sampling
+                glm::vec4 color = glm::vec4(0.0f);
+                for (int sample = 0; sample < m_config.samplesPerPixel; sample++) {
+
+                    float jitterX = dis(gen);
+                    float jitterY = dis(gen);
+
+                    Ray ray = scene.getCamera().generateRay(j + jitterY, i + jitterX);
+                    glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
+                    glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
+
+                    ray.origin    = glm::vec3(originWorld);
+                    ray.direction = glm::normalize(glm::vec3(directionWorld));
+
+                    color += traceRay(ray, scene, 0);
+
+                }
+
+                color = color / (float)m_config.samplesPerPixel;
+                imageData[pointToIndex(i, j, scene.width())] = toRGBA(color);
+
+            } else if (uniformSampling) {
+
+                // Uniform Sampling
+                float spp_sqrt = (int)glm::sqrt(m_config.samplesPerPixel);
+                float div = 1.0f / spp_sqrt;
+
+                glm::vec4 color = glm::vec4(0.0f);
+
+                for (int col = 0; col < spp_sqrt; col++) {
+                    for (int row = 0; row < spp_sqrt; row++) {
+
+                        float miniJ = (float)j + div * (col + 0.5f);
+                        float miniI = (float)i + div * (row + 0.5f);
+                        Ray ray = scene.getCamera().generateRay(miniJ, miniI);
+                        glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
+                        glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
+
+                        ray.origin    = glm::vec3(originWorld);
+                        ray.direction = glm::normalize(glm::vec3(directionWorld));
+
+                        color += traceRay(ray, scene, 0);
+
+                    }
+                }
+
+                color = color / (float)m_config.samplesPerPixel;
+                imageData[pointToIndex(i, j, scene.width())] = toRGBA(color);
+
+            } else if (stratifiedSampling) {
+
+                // Stratified Sampling
+                float spp_sqrt = (int)glm::sqrt(m_config.samplesPerPixel);
+                float div = 1.0f / spp_sqrt;
+
+                glm::vec4 color = glm::vec4(0.0f);
+
+                for (int col = 0; col < spp_sqrt; col++) {
+                    for (int row = 0; row < spp_sqrt; row++) {
+
+                        float jitterJ = dis(gen) / div;
+                        float jitterI = dis(gen) / div;
+
+                        float miniJ = ((float)j + div * (col + 0.5f)) + jitterJ;
+                        float miniI = ((float)i + div * (row + 0.5f)) + jitterI;
+
+                        Ray ray = scene.getCamera().generateRay(miniJ, miniI);
+                        glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
+                        glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
+
+                        ray.origin    = glm::vec3(originWorld);
+                        ray.direction = glm::normalize(glm::vec3(directionWorld));
+
+                        color += traceRay(ray, scene, 0);
+
+                    }
+                }
+
+                color = color / (float)m_config.samplesPerPixel;
+                imageData[pointToIndex(i, j, scene.width())] = toRGBA(color);
+
+            } else {
+
+                // Normal Sampling
+                Ray ray = scene.getCamera().generateRay(j, i);
+                glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
+                glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
+
+                ray.origin    = glm::vec3(originWorld);
+                ray.direction = glm::normalize(glm::vec3(directionWorld));
+
+                imageData[pointToIndex(i, j, scene.width())] = toRGBA(traceRay(ray, scene, 0));
+
+            }
 
         }
     }
 
 }
 
-// Should return an RGBA value.
+// Should return an RGBA value as vec4 of ints.
 glm::vec4 RayTracer::traceRay(Ray ray,
                               const RayTraceScene &scene,
                               int recursiveDepth) {
 
     float t;
     glm::vec3 hitPoint;
-    glm::vec3 hitPointObject; // store the object-space hit for chosen shape
+    glm::vec3 hitPointObject;
     glm::vec3 normal;
     float smallestT = INFINITY;
 
-    std::shared_ptr<Shape> closestShape = nullptr;
+    std::shared_ptr<Shape> closestShape;
 
     // Object Intersection Checking --
     for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
@@ -108,8 +208,7 @@ glm::vec4 RayTracer::traceRay(Ray ray,
                       closestShape,
                       scene.getLightData());
 
-        // May need to change to qsettings config ?
-        if (recursiveDepth < 4 && isReflective(closestShape->shapeInfo.primitive.material)) {
+        if (recursiveDepth < m_config.maxRecursiveDepth && isReflective(closestShape->shapeInfo.primitive.material)) {
 
             Ray reflectedRay;
             SceneMaterial material = closestShape->shapeInfo.primitive.material;
@@ -143,8 +242,11 @@ bool traceShadowRay(glm::vec3 position,
     Ray shadowRay;
     shadowRay.origin = position + 0.001f * normal;
 
-    if (light.type == LightType::LIGHT_POINT) shadowRay.direction = glm::normalize((glm::vec3(light.pos) - position));
-    else shadowRay.direction = glm::normalize(-glm::vec3(light.dir));
+    if (light.type == LightType::LIGHT_DIRECTIONAL) shadowRay.direction = glm::normalize(-glm::vec3(light.dir));
+    else shadowRay.direction = shadowRay.direction = glm::normalize((glm::vec3(light.pos) - position));
+
+    // if (light.type == LightType::LIGHT_POINT) shadowRay.direction = shadowRay.direction = glm::normalize((glm::vec3(light.pos) - position));
+    // else glm::normalize(-glm::vec3(light.dir));
 
     for (std::shared_ptr<Shape> shape : scene.getShapeData()) {
 
@@ -158,7 +260,7 @@ bool traceShadowRay(glm::vec3 position,
 
             if (light.type == LightType::LIGHT_DIRECTIONAL) {
 
-                if (t > 0.0f) return false;
+                if (t > 0.0f) return false; // If any intersection is done in the direction of the light, there should be a shadow.
 
             } else {
 
@@ -282,8 +384,6 @@ glm::vec4 RayTracer::phong(glm::vec3  position,
 
                 RGBA textureColor = textureMap->data[pointToIndex(x, y, textureMap->width)];
                 glm::vec4 textureColorNorm = glm::vec4((float)textureColor.r, (float)textureColor.g, (float)textureColor.b, 255.0f) / 255.0f;
-                // glm::vec4 calc = scene.getGlobalData().kd * glm::mix(textureColorNorm, glm::vec3(material.cDiffuse), 1 - material.blend);
-                // diffuse = glm::vec4(calc, 1.0f) * ndotl;
 
                 diffuse = (material.blend * textureColorNorm + (((1.0f - material.blend) * scene.getGlobalData().kd * material.cDiffuse))) * ndotl;
 

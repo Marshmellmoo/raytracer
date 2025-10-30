@@ -86,19 +86,21 @@ glm::vec2 Cylinder::computeUV( glm::vec3& hitPoint ) const {
 
     if (abs(hitPoint.y - 0.5f) < epsilon) {
 
-        u = hitPoint.x + 0.5;
-        v =-hitPoint.z + 0.5;
+        u = hitPoint.x + 0.5f;
+        v = -hitPoint.z + 0.5f;
 
     } else if (abs(hitPoint.y + 0.5f) < epsilon) {
 
-        u = hitPoint.x + 0.5;
-        v = hitPoint.z + 0.5;
+        u = hitPoint.x + 0.5f;
+        v = hitPoint.z + 0.5f;
 
     } else {
 
-        float theta = atan2(-hitPoint.z, hitPoint.x);
-        u = (theta) / (2.0f * M_PI);
-        v = hitPoint.y + 0.5;
+        float theta = atan2(hitPoint.z, hitPoint.x);
+        if (theta < 0) u = (-theta) / (2.0f * M_PI);
+        else u = 1.0f - (theta / (2.0f * M_PI));
+
+        v = hitPoint.y + 0.5f;
 
     }
 

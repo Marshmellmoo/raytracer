@@ -30,12 +30,41 @@ glm::vec3 Sphere::computeNormal(glm::vec3& hitPoint) const {
 
 glm::vec2 Sphere::computeUV(glm::vec3& hitPoint) const {
 
-    float theta = atan2(-hitPoint.z, hitPoint.x); // Coordinates that give hitpoint "x" as an angle away fom center of sphere
+    float theta = atan2(hitPoint.z, hitPoint.x); // Coordinates that give hitpoint "x" as an angle away fom center of sphere
     float phi = asin(hitPoint.y / m_radius); // Coordinates that give hitpoint "y" as how elevated from center of sphere
+    float u, v;
 
-    float u = (theta) / (2 * M_PI);
-    float v = (phi / M_PI) + 0.5;
+    // Normal texture calculations
+    if (theta < 0) u = (-theta) / (2.0f * M_PI);
+    else u = 1.0f - (theta / (2.0f * M_PI));
+
+    v = (phi / M_PI) + 0.5f;
 
     return glm::vec2(u, v);
+
+}
+
+std::tuple<glm::vec4> Sphere::computeDifferentials(glm::vec3& hitPoint) const {
+
+    float duDX, duDY, duDZ;
+    float dvDX, dvDY, dvDZ;
+
+    duDX = (1 / (2 * M_PI)) *
+           (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
+
+    duDY = 0;
+
+    duDZ = (-1 / (2 * M_PI)) *
+           (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
+
+    dvDX = 0;
+    dvDY = 1 / (M_PI * glm::sqrt(m_radius * m_radius - hitPoint.y * hitPoint.y));
+    dvDZ = 0;
+
+    glm::vec3 du = glm::vec3(duDX, duDY, duDZ);
+    glm::vec3 dv = glm::vec3(dvDX, dvDY, dvDZ);
+
+    std::tuple<glm::vec3> result = std::tuple<glm::vec3>(2)[du, dv];
+    return std::tuple<glm::vec4>(2);
 
 }
