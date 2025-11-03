@@ -40,31 +40,43 @@ glm::vec2 Sphere::computeUV(glm::vec3& hitPoint) const {
 
     v = (phi / M_PI) + 0.5f;
 
+    if (u < 0 || v < 0) {
+        std::cout << "less than 0" << std::endl;
+    }
+
     return glm::vec2(u, v);
 
 }
 
-std::tuple<glm::vec4> Sphere::computeDifferentials(glm::vec3& hitPoint) const {
+std::tuple<glm::vec3, glm::vec3> Sphere::computeDifferentials(glm::vec3& hitPoint) const {
 
-    float duDX, duDY, duDZ;
-    float dvDX, dvDY, dvDZ;
+    float du_dx, du_dy, du_dz;
+    float dv_dx, dv_dy, dv_dz;
 
-    duDX = (1 / (2 * M_PI)) *
-           (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
+    du_dx = (1.0f / (2.0f * M_PI)) *
+            (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
 
-    duDY = 0;
+    du_dy = 0.0f;
 
-    duDZ = (-1 / (2 * M_PI)) *
-           (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
+    du_dz = (-1.0f / (2.0f * M_PI)) *
+            (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
 
-    dvDX = 0;
-    dvDY = 1 / (M_PI * glm::sqrt(m_radius * m_radius - hitPoint.y * hitPoint.y));
-    dvDZ = 0;
+    dv_dx = 0.0f;
+    dv_dy = 1.0f / (M_PI * glm::sqrt(m_radius * m_radius - hitPoint.y * hitPoint.y));
+    dv_dz = 0.0f;
 
-    glm::vec3 du = glm::vec3(duDX, duDY, duDZ);
-    glm::vec3 dv = glm::vec3(dvDX, dvDY, dvDZ);
+    glm::vec3 du = glm::vec3(du_dx, du_dy, du_dz);
+    glm::vec3 dv = glm::vec3(dv_dx, dv_dy, dv_dz);
 
-    std::tuple<glm::vec3> result = std::tuple<glm::vec3>(2)[du, dv];
-    return std::tuple<glm::vec4>(2);
+    std::tuple<glm::vec3, glm::vec3> dp = std::make_tuple(du, dv);
+
+    return dp;
+
+}
+
+bool Sphere::pointShapeCollision(const glm::vec3 &p) const {
+
+    const float eps = 1e-6f;
+    return glm::length(p) <= (m_radius + eps);
 
 }

@@ -31,9 +31,17 @@ Run the program with the specified `.ini` file to compare your output (it should
 
 
 ## Design Choices
+I decided to make a new class Texture to handle all downsampling, bilinear, and trilinear sampling. All of this is loaded
+immediately in my raytrace scene.
+
 
 ## Collaboration/References
+I used Claude to understand concepts like downsampling, and one-way kernels, as well
 
 ## Known Bugs
+I know something is wrong with my differentials, because my levels aren't being called correctly, and I'm unsure why.
+I'm also aware that my supersampling makes the image a little blurier than it should be, but I could not fix
+the bug on time.
 
 ## Extra Credit
+I did not do any extra credit.

@@ -106,3 +106,53 @@ glm::vec2 Cylinder::computeUV( glm::vec3& hitPoint ) const {
 
     return glm::vec2(u, v);
 }
+
+std::tuple<glm::vec3, glm::vec3> Cylinder::computeDifferentials(glm::vec3& hitPoint) const {
+
+    const float epsilon = 0.0001f;
+
+    glm::vec3 du_dp, dv_dp;
+
+    float du_dx, du_dy, du_dz;
+    float dv_dx, dv_dy, dv_dz;
+
+    if (abs(hitPoint.y - 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(1, 0, 0);
+        dv_dp = glm::vec3(0, 0, -1);
+
+    } else if (abs(hitPoint.y + 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(1, 0, 0);
+        dv_dp = glm::vec3(0, 0, 1);
+
+    } else {
+
+        du_dx = (-2 * hitPoint.z) / M_PI;
+        du_dy = 0;
+        du_dz = (2 * hitPoint.x) / M_PI;
+
+        du_dp = glm::vec3(du_dx, du_dy, du_dz);
+
+        dv_dx = 0;
+        dv_dy = 1;
+        dv_dz = 0;
+
+        dv_dp = glm::vec3(dv_dx, dv_dy, dv_dz);
+
+    }
+
+    return std::make_tuple(du_dp, dv_dp);
+
+}
+
+bool Cylinder::pointShapeCollision(const glm::vec3 &p) const {
+
+    const float radius = 1.0f;
+    const float yMin = -0.5f, yMax = 0.5f;
+    const float eps = 1e-6f;
+
+    float rr = p.x * p.x + p.z * p.z;
+    return (rr <= radius * radius + eps) && (p.y >= yMin - eps) && (p.y <= yMax + eps);
+
+}

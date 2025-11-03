@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "camera/camera.h"
 #include "shapes/shape.h"
+#include "textures/texture.h"
 #include "utils/ini_utils.h"
 #include "utils/rgba.h"
 #include "utils/scenedata.h"
@@ -48,17 +49,28 @@ public:
 private:
 
     const Config m_config;
+    int spp;
+    int spp_sqrt;
 
-    glm::vec4 traceRay(Ray ray,
+    glm::vec4 raytrace(Ray ray,
                   const RayTraceScene &scene,
                   int recursiveDepth);
+
+    // Change to type Texture
+    glm::vec4 texture(Texture texture,
+                      std::tuple<glm::vec3, glm::vec3> differentials,
+                      glm::vec3 hitPoint,
+                      glm::vec3 dp_dx,
+                      glm::vec3 dp_dy,
+                      std::shared_ptr<Shape>  &shape);
 
     glm::vec4 phong(glm::vec3  position,
                glm::vec3  normal,
                glm::vec3  directionToCamera,
                const RayTraceScene& scene,
                std::shared_ptr<Shape>  &material,
-               const std::vector<SceneLightData> &lights);
+               const std::vector<SceneLightData> &lights,
+               glm::vec4 textureColor);
 
 };
 

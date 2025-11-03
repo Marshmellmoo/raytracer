@@ -13,6 +13,7 @@ struct Ray {
 
     glm::vec3 origin;
     glm::vec3 direction;
+    glm::vec3 unnormalizedDirection;
 
 };
 
@@ -29,7 +30,6 @@ private:
 
     glm::vec3 look;
     glm::vec3 up;
-    glm::vec3 position;
 
     glm::mat4 viewMatrix;
     glm::mat4 inverseViewMatrix;
@@ -44,6 +44,9 @@ private:
     glm::mat4 computeViewMatrix();
 
 public:
+
+    mutable std::tuple<glm::vec3, glm::vec3> r_bar;
+    glm::vec3 position;
 
     void init(const SceneCameraData& camera, int imgWidth, int imgHeight);
 
@@ -70,5 +73,6 @@ public:
     float getAperture() const;
 
     Ray generateRay(int i, int j) const;
+    void calculateR(int spp) const;
 
 };

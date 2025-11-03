@@ -1,5 +1,6 @@
 #include <stdexcept>
 #include "raytracescene.h"
+#include "textures/texture.h"
 #include "utils/sceneparser.h"
 #include "shapes/shape.h"
 #include "shapes/cone.h"
@@ -36,7 +37,15 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
                 cube->inverseCTM = glm::inverse(shapeData.ctm);
 
                 if (cube->shapeInfo.primitive.material.textureMap.isUsed) {
-                    cube->textureMap = loadImageFromFile(cube->shapeInfo.primitive.material.textureMap.filename);
+
+                    Image* txt = loadImageFromFile(cube->shapeInfo.primitive.material.textureMap.filename);
+                    SceneFileMap data = cube->shapeInfo.primitive.material.textureMap;
+                    float blend = cube->shapeInfo.primitive.material.blend;
+
+                    Texture t = Texture(txt, data, blend);
+                    cube->texture = t;
+                    cube->texture.generateMaps();
+
                 }
 
                 shapes.push_back(cube);
@@ -51,7 +60,15 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
                 cone->inverseCTM = glm::inverse(shapeData.ctm);
 
                 if (cone->shapeInfo.primitive.material.textureMap.isUsed) {
-                    cone->textureMap = loadImageFromFile(cone->shapeInfo.primitive.material.textureMap.filename);
+
+                    Image* txt = loadImageFromFile(cone->shapeInfo.primitive.material.textureMap.filename);
+                    SceneFileMap data = cone->shapeInfo.primitive.material.textureMap;
+                    float blend = cone->shapeInfo.primitive.material.blend;
+
+                    Texture t = Texture(txt, data, blend);
+                    cone->texture = t;
+                    cone->texture.generateMaps();
+
                 }
 
                 shapes.push_back(cone);
@@ -66,7 +83,15 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
                 cyl->inverseCTM = glm::inverse(shapeData.ctm);
 
                 if (cyl->shapeInfo.primitive.material.textureMap.isUsed) {
-                    cyl->textureMap = loadImageFromFile(cyl->shapeInfo.primitive.material.textureMap.filename);
+
+                    Image* txt = loadImageFromFile(cyl->shapeInfo.primitive.material.textureMap.filename);
+                    SceneFileMap data = cyl->shapeInfo.primitive.material.textureMap;
+                    float blend = cyl->shapeInfo.primitive.material.blend;
+
+                    Texture t = Texture(txt, data, blend);
+                    cyl->texture = t;
+                    cyl->texture.generateMaps();
+
                 }
 
                 shapes.push_back(cyl);
@@ -81,7 +106,15 @@ std::vector<std::shared_ptr<Shape>> RayTraceScene::parseRenderShapeData(std::vec
                 sphere->inverseCTM = glm::inverse(shapeData.ctm);
 
                 if (sphere->shapeInfo.primitive.material.textureMap.isUsed) {
-                    sphere->textureMap = loadImageFromFile(sphere->shapeInfo.primitive.material.textureMap.filename);
+
+                    Image* txt = loadImageFromFile(sphere->shapeInfo.primitive.material.textureMap.filename);
+                    SceneFileMap data = sphere->shapeInfo.primitive.material.textureMap;
+                    float blend = sphere->shapeInfo.primitive.material.blend;
+
+                    Texture t = Texture(txt, data, blend);
+                    sphere->texture = t;
+                    sphere->texture.generateMaps();
+
                 }
 
                 shapes.push_back(sphere);

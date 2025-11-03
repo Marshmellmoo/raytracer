@@ -1,5 +1,7 @@
 #include <stdexcept>
+#include <glm/glm.hpp>
 #include "camera.h"
+#include <tuple>
 
 void Camera::init(const SceneCameraData& camera, int imgWidth, int imgHeight) {
 
@@ -24,6 +26,7 @@ void Camera::init(const SceneCameraData& camera, int imgWidth, int imgHeight) {
 
     viewMatrix = computeViewMatrix();
     inverseViewMatrix = glm::inverse(viewMatrix);
+
 }
 
 glm::mat4 Camera::computeViewMatrix() {
@@ -54,7 +57,7 @@ Ray Camera::generateRay(int i, int j) const {
     float z = -k;
 
     glm::vec3 rayOrigin = glm::vec3(0, 0, 0);
-    glm::vec3 rayDirection = glm::normalize(glm::vec3(x, y, z));
+    glm::vec3 rayDirection = glm::vec3(x, y, z);
 
     return Ray {rayOrigin, rayDirection};
 
@@ -82,4 +85,17 @@ float Camera::getFocalLength() const {
 
 float Camera::getAperture() const {
     return aperture;
+}
+
+void Camera::calculateR(int spp) const {
+
+    float sWidth  = (static_cast<float>(imgWidth) * glm::ceil(glm::sqrt(static_cast<float>(spp))));
+    float sHeight = (static_cast<float>(imgHeight) * glm::ceil(glm::sqrt(static_cast<float>(spp))));
+
+    float x = (2.0f * k * glm::tan(widthAngle / 2.0f)) / sWidth;
+    float y = (2.0f * k * glm::tan(heightAngle / 2.0f)) / sHeight;
+
+    std::get<0>(r_bar) = glm::vec3(x, 0.0f, 0.0f);
+    std::get<1>(r_bar) = glm::vec3(0.0f, y, 0.0f);
+
 }

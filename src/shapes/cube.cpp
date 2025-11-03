@@ -119,3 +119,55 @@ glm::vec2 Cube::computeUV(glm::vec3& hitPoint) const {
     return glm::vec2(u, v);
 
 }
+
+std::tuple<glm::vec3, glm::vec3> Cube::computeDifferentials(glm::vec3& hitPoint) const {
+
+    const float epsilon = 0.0001f;
+    glm::vec3 du_dp, dv_dp;
+
+    if (abs(hitPoint.x - 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(0, 0, 1);
+        dv_dp = glm::vec3(0, 1, 0);
+
+    } else if (abs(hitPoint.x + 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(0, 0, -1);
+        dv_dp = glm::vec3(0, 1, 0);
+
+    } else if (abs(hitPoint.y - 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(1, 0, 0);
+        dv_dp = glm::vec3(0, 0, -1);
+
+    } else if (abs(hitPoint.y + 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(1, 0, 0);
+        dv_dp = glm::vec3(0, 0, 1);
+
+    } else if (abs(hitPoint.z - 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(-1, 0, 0);
+        dv_dp = glm::vec3(0, 1, 0);
+
+    } else {
+
+        du_dp = glm::vec3(1, 0, 0);
+        dv_dp = glm::vec3(0, 1, 0);
+
+    }
+
+    std::tuple<glm::vec3, glm::vec3> dp = std::make_tuple(du_dp, dv_dp);
+    return dp;
+
+}
+
+bool Cube::pointShapeCollision(const glm::vec3 &p) const {
+
+    const float half = 0.5f;
+    const float eps = 1e-6f;
+    return (std::abs(p.x) <= half + eps) &&
+           (std::abs(p.y) <= half + eps) &&
+           (std::abs(p.z) <= half + eps);
+
+}
