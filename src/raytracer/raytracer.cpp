@@ -130,7 +130,7 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
                     float px = (float)i + dis(gen);
                     float py = (float)j + dis(gen);
 
-                    Ray ray = scene.getCamera().generateRay(py + 0.5f, px + 0.5f);
+                    Ray ray = scene.getCamera().generateRay(py, px);
                     glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
                     glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
 
@@ -159,7 +159,7 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
                         float px = (float)i + jx;
                         float py = (float)j + jy;
 
-                        Ray ray = scene.getCamera().generateRay(py - 0.5f, px - 0.5f);
+                        Ray ray = scene.getCamera().generateRay(py, px);
                         glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
                         glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
 
@@ -189,7 +189,7 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
                         float px = (float)i + jx;
                         float py = (float)j + jy;
 
-                        Ray ray = scene.getCamera().generateRay(py + 0.5f, px + 0.5f);
+                        Ray ray = scene.getCamera().generateRay(py, px);
                         glm::vec4 originWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.origin, 1.0f);
                         glm::vec4 directionWorld = scene.getCamera().getInverseViewMatrix() * glm::vec4(ray.direction, 0.0f);
 
@@ -202,7 +202,7 @@ void RayTracer::render(RGBA *imageData, const RayTraceScene &scene) {
                     }
                 }
 
-                color = color / (float)m_config.samplesPerPixel;
+                color = color / (float)spp;
                 imageData[pointToIndex(i, j, scene.width())] = toRGBA(color);
 
             } else {
@@ -253,13 +253,11 @@ glm::vec4 RayTracer::raytrace(Ray ray,
 
             if (tWorld < smallestT && tWorld > 1e-6f) {
 
-                if (shape->pointShapeCollision(scene.getCamera().position)) {
-                    normal = -shape->computeNormal(hitPoint);
-                } else { normal = shape->computeNormal(hitPoint); }
 
-                smallestT = tWorld;
-                closestShape = shape;
-                hitPointObject = hitPoint;
+                normal = shape->computeNormal(hitPoint); // Object Space
+                smallestT = tWorld; // World Space
+                closestShape = shape; // World Space
+                hitPointObject = hitPoint; // Object Space
 
             };
 
@@ -284,6 +282,9 @@ glm::vec4 RayTracer::raytrace(Ray ray,
         glm::vec3 normalWorld = glm::vec3(glm::sign(glm::determinant(glm::mat3(closestShape->shapeInfo.ctm))) *
                                           glm::transpose(glm::mat3(closestShape->inverseCTM)) * normal);
 
+        float side = glm::dot(normalWorld, glm::normalize(-ray.direction));
+        normalWorld = (side > 0) ? normalWorld : -normalWorld;
+
         if (closestShape->shapeInfo.primitive.material.textureMap.isUsed) {
 
             // dp_dx and dp_dy calculations
@@ -293,12 +294,12 @@ glm::vec4 RayTracer::raytrace(Ray ray,
             glm::vec3 dd_dx = (glm::vec3(rWorldX) * glm::dot(ray.unnormalizedDirection, ray.unnormalizedDirection) -
                                glm::dot(ray.unnormalizedDirection, glm::vec3(rWorldX)) * ray.unnormalizedDirection) /
                                std::pow(glm::dot(ray.unnormalizedDirection, ray.unnormalizedDirection), 3.0f / 2.0f);
-            float dt_dx = -(glm::dot(normal, t * dd_dx)) / glm::dot(normalWorld, ray.direction);
+            float dt_dx = -(glm::dot(normalWorld, t * dd_dx)) / glm::dot(normalWorld, ray.direction);
 
             glm::vec3 dd_dy = (glm::vec3(rWorldY) * glm::dot(ray.unnormalizedDirection, ray.unnormalizedDirection) -
                                glm::dot(ray.unnormalizedDirection, glm::vec3(rWorldY)) * ray.unnormalizedDirection) /
                                std::pow(glm::dot(ray.unnormalizedDirection, ray.unnormalizedDirection), 3.0f / 2.0f);
-            float dt_dy = -(glm::dot(normal, t * dd_dy)) / glm::dot(normalWorld, ray.direction);
+            float dt_dy = -(glm::dot(normalWorld, t * dd_dy)) / glm::dot(normalWorld, ray.direction);
 
             glm::vec3 dp_dx = t * dd_dx + dt_dx * ray.direction;
             glm::vec3 dp_dy = t * dd_dy + dt_dy * ray.direction;

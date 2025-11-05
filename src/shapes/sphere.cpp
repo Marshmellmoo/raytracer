@@ -59,7 +59,7 @@ std::tuple<glm::vec3, glm::vec3> Sphere::computeDifferentials(glm::vec3& hitPoin
     du_dy = 0.0f;
 
     du_dz = (-1.0f / (2.0f * M_PI)) *
-            (hitPoint.z / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
+            (hitPoint.x / (hitPoint.x * hitPoint.x + hitPoint.z * hitPoint.z));
 
     dv_dx = 0.0f;
     dv_dy = 1.0f / (M_PI * glm::sqrt(m_radius * m_radius - hitPoint.y * hitPoint.y));
@@ -74,9 +74,3 @@ std::tuple<glm::vec3, glm::vec3> Sphere::computeDifferentials(glm::vec3& hitPoin
 
 }
 
-bool Sphere::pointShapeCollision(const glm::vec3 &p) const {
-
-    const float eps = 1e-6f;
-    return glm::length(p) <= (m_radius + eps);
-
-}

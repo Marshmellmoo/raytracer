@@ -145,14 +145,3 @@ std::tuple<glm::vec3, glm::vec3> Cylinder::computeDifferentials(glm::vec3& hitPo
     return std::make_tuple(du_dp, dv_dp);
 
 }
-
-bool Cylinder::pointShapeCollision(const glm::vec3 &p) const {
-
-    const float radius = 1.0f;
-    const float yMin = -0.5f, yMax = 0.5f;
-    const float eps = 1e-6f;
-
-    float rr = p.x * p.x + p.z * p.z;
-    return (rr <= radius * radius + eps) && (p.y >= yMin - eps) && (p.y <= yMax + eps);
-
-}

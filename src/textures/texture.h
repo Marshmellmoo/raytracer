@@ -17,8 +17,8 @@ public:
 
     void generateMaps();
     glm::vec4 sampleNearest(glm::vec2 uv);
-    glm::vec4 sampleBilinear(glm::vec2 uv, float level, bool mipmap);
-    glm::vec4 sampleTrilinear(glm::vec2 uv, float fractionalLevel, bool mipmap);
+    glm::vec4 sampleBilinear(glm::vec2& uv, float& level, bool mipmap);
+    glm::vec4 sampleTrilinear(glm::vec2& uv, float& fractionalLevel, bool mipmap);
 
     void debug(const std::string& baseFilename);
 

@@ -79,6 +79,12 @@ glm::vec2 Cone::computeUV(glm::vec3& hitPoint) const {
         u = hitPoint.x + 0.5;
         v = hitPoint.z + 0.5;
 
+    } else if (abs(hitPoint.y - 0.5f) < epsilon) {
+
+        // Tip
+        u = 0.5;
+        v = hitPoint.z + 0.5;
+
     } else {
 
         float theta = atan2(-hitPoint.z, hitPoint.x);
@@ -102,8 +108,13 @@ std::tuple<glm::vec3, glm::vec3> Cone::computeDifferentials(glm::vec3& hitPoint)
 
     if (abs(hitPoint.y + 0.5f) < epsilon) {
 
-        du_dp = glm::vec3(1, 0, 0);
-        dv_dp = glm::vec3(0, 0, 1);
+        du_dp = glm::vec3(1.0f, 0.0f, 0.0f);
+        dv_dp = glm::vec3(0.0f, 0.0f, 1.0f);
+
+    } else if (abs(hitPoint.y - 0.5f) < epsilon) {
+
+        du_dp = glm::vec3(1.0f, 0.0f, 0.0f);
+        dv_dp = glm::vec3(0.0f, 0.0f, 1.0f);
 
     } else {
 
@@ -127,14 +138,3 @@ std::tuple<glm::vec3, glm::vec3> Cone::computeDifferentials(glm::vec3& hitPoint)
 
 }
 
-bool Cone::pointShapeCollision(const glm::vec3 &p) const {
-
-    const float height = 1.0f;
-    const float baseRadius = 1.0f;
-    const float eps = 1e-6f;
-
-    if (p.y < 0.0f - eps || p.y > height + eps) return false;
-    float rAtY = baseRadius * (1.0f - (p.y / height));
-    return (p.x * p.x + p.z * p.z) <= (rAtY * rAtY + eps);
-
-}

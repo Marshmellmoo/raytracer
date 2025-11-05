@@ -93,18 +93,20 @@ Image* Texture::downsample(float& scaleX, float& scaleY, int& width, int& height
         }
     }
 
+    RGBA* data = new RGBA[width * height];
+
     // Vertical Pass --
     for (int j = 0; j < height; j++) {
         for (int i = 0; i < width; i++) {
 
             int index = pointToIndex(i, j, width);
-            vertical[index] = toRGBA(tent(j, scaleY, horizontal, j, i, width, texture->height, false));
+            RGBA color = toRGBA(tent(j, scaleY, horizontal, j, i, width, texture->height, false));
+            vertical[index] = color;
+            data[index] = color;
 
         }
     }
 
-    RGBA* data = new RGBA[width * height];
-    std::copy(vertical.begin(), vertical.end(), data);
 
     // DEBUG
     QImage imgH(width, texture->height, QImage::Format_RGBA8888);
@@ -153,7 +155,7 @@ float filter(float x, float radius) {
 }
 
 
-glm::vec4 Texture::tent(int& k, float& a, std::vector<RGBA> f, int row, int col, int fWidth, int fHeight, bool horizontal) {
+glm::vec4 Texture::tent(int& k, float& a, std::vector<RGBA>& f, int& row, int& col, int fWidth, int fHeight, bool horizontal) {
 
     glm::vec4 sum(0.0f);
     float weights_sum = 0.0f;
@@ -188,8 +190,6 @@ glm::vec4 Texture::tent(int& k, float& a, std::vector<RGBA> f, int row, int col,
         weights_sum += w;
     }
 
-    // m_data(r%h) * w + (c % w)
-
     if (weights_sum <= 0.0f) return glm::vec4(0.0f);
     return sum / weights_sum;
 
@@ -217,7 +217,7 @@ glm::vec4 Texture::sampleNearest(glm::vec2 uv) {
 
 }
 
-glm::vec4 Texture::sampleBilinear(glm::vec2 uv, float level, bool mipmap) {
+glm::vec4 Texture::sampleBilinear(glm::vec2& uv, float& level, bool mipmap) {
 
     int b_level;
     b_level = (mipmap) ? (int)glm::clamp(glm::ceil(level), 0.0f, m_levels.size() - 1.0f) : 0;
@@ -239,9 +239,16 @@ glm::vec4 Texture::sampleBilinear(glm::vec2 uv, float level, bool mipmap) {
     int c_left, c_right, r_top, r_bottom;
 
     c_left = (int)glm::floor(x_left) % map->width;
+    c_left = (c_left < 0) ? c_left + map->width : c_left;
+
     c_right = (int)glm::floor(x_right) % map->width;
+    c_right = (c_right < 0) ? c_right + map->width : c_right;
+
     r_top = (int)glm::floor(y_top) % map->height;
+    r_top = (r_top < 0) ? r_top + map->height : r_top;
+
     r_bottom = (int)glm::floor(y_bottom) % map->height;
+    r_bottom = (r_bottom < 0) ? r_bottom + map->height : r_bottom;
 
     float a_x, a_y;
 
@@ -266,7 +273,7 @@ glm::vec4 Texture::sampleBilinear(glm::vec2 uv, float level, bool mipmap) {
 
 }
 
-glm::vec4 Texture::sampleTrilinear(glm::vec2 uv, float fractionalLevel, bool mipmap) {
+glm::vec4 Texture::sampleTrilinear(glm::vec2& uv, float& fractionalLevel, bool mipmap) {
 
     int levelA, levelB;
     levelA = floor(fractionalLevel);

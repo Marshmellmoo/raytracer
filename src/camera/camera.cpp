@@ -50,10 +50,10 @@ glm::mat4 Camera::computeViewMatrix() {
 }
 
 // Generates ray in CAMERA SPACE.
-Ray Camera::generateRay(int i, int j) const {
+Ray Camera::generateRay(float i, float j) const {
 
-    float x = 2 * k * glm::tan(widthAngle / 2) * (((j + 0.5) / imgWidth) - 0.5);
-    float y = 2 * k * glm::tan(heightAngle / 2) * (((imgHeight - 1 - i + 0.5) / imgHeight) - 0.5);
+    float x = 2 * k * glm::tan(widthAngle / 2) * ((j / imgWidth) - 0.5);
+    float y = 2 * k * glm::tan(heightAngle / 2) * (((imgHeight - 1 - i) / imgHeight) - 0.5);
     float z = -k;
 
     glm::vec3 rayOrigin = glm::vec3(0, 0, 0);

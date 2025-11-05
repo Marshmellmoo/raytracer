@@ -72,7 +72,7 @@ public:
     // You can ignore if you are not attempting to implement depth of field.
     float getAperture() const;
 
-    Ray generateRay(int i, int j) const;
+    Ray generateRay(float i, float j) const;
     void calculateR(int spp) const;
 
 };

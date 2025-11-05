@@ -162,12 +162,3 @@ std::tuple<glm::vec3, glm::vec3> Cube::computeDifferentials(glm::vec3& hitPoint)
 
 }
 
-bool Cube::pointShapeCollision(const glm::vec3 &p) const {
-
-    const float half = 0.5f;
-    const float eps = 1e-6f;
-    return (std::abs(p.x) <= half + eps) &&
-           (std::abs(p.y) <= half + eps) &&
-           (std::abs(p.z) <= half + eps);
-
-}
