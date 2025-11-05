@@ -39,9 +39,7 @@ immediately in my raytrace scene.
 I used Claude to understand concepts like downsampling, and one-way kernels, as well
 
 ## Known Bugs
-I know something is wrong with my differentials, because my levels aren't being called correctly, and I'm unsure why.
-I'm also aware that my supersampling makes the image a little blurier than it should be, but I could not fix
-the bug on time.
+I fixed most of my bugs, however, in supersampling tests, my sphere has a weird blur on the edge, and I could not figure out why.
 
 ## Extra Credit
 I did not do any extra credit.
