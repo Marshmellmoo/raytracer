@@ -36,7 +36,8 @@ immediately in my raytrace scene.
 
 
 ## Collaboration/References
-I used Claude to understand concepts like downsampling, and one-way kernels, as well
+I used Claude to understand concepts like downsampling, and one-way kernels, etc. I collaborated with people
+during Spandans hours, and with people like mka1, 
 
 ## Known Bugs
 I fixed most of my bugs, however, in supersampling tests, my sphere has a weird blur on the edge, and I could not figure out why.
