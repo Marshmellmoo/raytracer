@@ -63,13 +63,7 @@ void Texture::generateMaps() {
             Image* downsampledImage = downsample(scaleFactorX, scaleFactorY, width, height);
             m_levels.push_back(downsampledImage);
 
-            std::cout << "\n=== LEVEL " << level << " DOWNSAMPLE ===" << std::endl;
-            std::cout << "scaleX=" << scaleFactorX << " scaleY=" << scaleFactorY << std::endl;
-            std::cout << "Original: " << texture->width << "×" << texture->height << std::endl;
-            std::cout << "Target: " << width << "×" << height << std::endl;
-
         }
-        std::cout << std::to_string(width) + " " + std::to_string(height) << std::endl;
 
         if (width == 1 && height == 1) break;
 
@@ -108,31 +102,31 @@ Image* Texture::downsample(float& scaleX, float& scaleY, int& width, int& height
     }
 
 
-    // DEBUG
-    QImage imgH(width, texture->height, QImage::Format_RGBA8888);
-    for (int row = 0; row < texture->height; row++) {  // Original height
-        for (int col = 0; col < width; col++) {        // Scaled width
-            int index = col + row * width;  // Direct calculation, clear order
-            RGBA pixel = horizontal[index];
-            imgH.setPixelColor(col, row, QColor(pixel.r, pixel.g, pixel.b, pixel.a));
-        }
-    }
+    // // DEBUG
+    // QImage imgH(width, texture->height, QImage::Format_RGBA8888);
+    // for (int row = 0; row < texture->height; row++) {  // Original height
+    //     for (int col = 0; col < width; col++) {        // Scaled width
+    //         int index = col + row * width;  // Direct calculation, clear order
+    //         RGBA pixel = horizontal[index];
+    //         imgH.setPixelColor(col, row, QColor(pixel.r, pixel.g, pixel.b, pixel.a));
+    //     }
+    // }
 
-    std::string filenameH = "debug_hpass_" + std::to_string(scaleX) + ".png";
-    imgH.save(QString::fromStdString(filenameH));
+    // std::string filenameH = "debug_hpass_" + std::to_string(scaleX) + ".png";
+    // imgH.save(QString::fromStdString(filenameH));
 
-    // Save final vertical pass result
-    QImage img(width, height, QImage::Format_RGBA8888);
-    for (int row = 0; row < height; row++) {  // Final height
-        for (int col = 0; col < width; col++) { // Final width
-            int index = col + row * width;
-            RGBA pixel = vertical[index];
-            img.setPixelColor(col, row, QColor(pixel.r, pixel.g, pixel.b, pixel.a));
-        }
-    }
+    // // Save final vertical pass result
+    // QImage img(width, height, QImage::Format_RGBA8888);
+    // for (int row = 0; row < height; row++) {  // Final height
+    //     for (int col = 0; col < width; col++) { // Final width
+    //         int index = col + row * width;
+    //         RGBA pixel = vertical[index];
+    //         img.setPixelColor(col, row, QColor(pixel.r, pixel.g, pixel.b, pixel.a));
+    //     }
+    // }
 
-    std::string filename = "debug_final_" + std::to_string(scaleX) + "x" + std::to_string(scaleY) + ".png";
-    img.save(QString::fromStdString(filename));
+    // std::string filename = "debug_final_" + std::to_string(scaleX) + "x" + std::to_string(scaleY) + ".png";
+    // img.save(QString::fromStdString(filename));
 
 
     Image* result = new Image{data, width, height};
@@ -217,7 +211,7 @@ glm::vec4 Texture::sampleNearest(glm::vec2 uv) {
 
 }
 
-glm::vec4 Texture::sampleBilinear(glm::vec2& uv, float& level, bool mipmap) {
+glm::vec4 Texture::sampleBilinear(glm::vec2& uv, float level, bool mipmap) {
 
     int b_level;
     b_level = (mipmap) ? (int)glm::clamp(glm::ceil(level), 0.0f, m_levels.size() - 1.0f) : 0;
